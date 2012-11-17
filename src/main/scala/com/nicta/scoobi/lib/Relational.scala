@@ -150,44 +150,8 @@ object Relational {
         left.flatMap{ case (k, v) => (0 until replicationFactor).map{ i => ((k, i), v) } },
         right.parallelDo(addRandIntToKey[K,V2](replicationFactor,0))
       )
-  }
-
-  /**
-   * Perform a left join using block-join.
-  */
-  def blockJoinLeft[K : Manifest : WireFormat : Ordering, V1 : Manifest : WireFormat, V2 : Manifest : WireFormat](
-    left: DList[(K,V1)], right: DList[(K,V2)], replicationFactor: Int = 5) = {
-      Relational.joinLeft(
-        left.flatMap{case (k,v) => (0 until replicationFactor).map{i => ((k, i), v)}},
-        right.parallelDo(addRandIntToKey[K,V2](replicationFactor,0))
-      )
       .map{case ((k,_),vs) => (k,vs)}
   }
-
-  /**
-   * Perform a right join using block-join.
-   */
-  def blockJoinRight[K : Manifest : WireFormat : Ordering, V1 : Manifest : WireFormat, V2 : Manifest : WireFormat](
-    left: DList[(K,V1)], right: DList[(K,V2)], replicationFactor: Int = 5) = {
-      Relational.joinRight(
-        left.flatMap{case (k,v) => (0 until replicationFactor).map{i => ((k, i), v)}},
-        right.parallelDo(addRandIntToKey[K,V2](replicationFactor,0))
-      )
-      .map{case ((k,_),vs) => (k,vs)}
-  }
-
-  /**
-   * Perform a full outer join using block-join.
-   */
-  def blockJoinFullOuter[K : Manifest : WireFormat : Ordering, V1 : Manifest : WireFormat, V2 : Manifest : WireFormat](
-    left: DList[(K,V1)], right: DList[(K,V2)], replicationFactor: Int = 5) = {
-      Relational.joinFullOuter(
-        left.flatMap{case (k,v) => (0 until replicationFactor).map{i => ((k, i), v)}},
-        right.parallelDo(addRandIntToKey[K,V2](replicationFactor,0))
-      )
-      .map{case ((k,_),vs) => (k,vs)}
-  }
-
 
   private def innerJoin[T, A, B] = new BasicDoFn[((T, Boolean), Iterable[Either[A, B]]), (T, (A, B))] {
     def process(input: ((T, Boolean), Iterable[Either[A, B]]), emitter: Emitter[(T, (A, B))]) {
